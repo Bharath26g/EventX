@@ -1,0 +1,60 @@
+// pages/AllEventsPage.jsx
+import React from 'react';
+import EventCard from '../components/eventCard';
+import { useState, useEffect } from 'react';
+import axiosInstance from '../utils/axiosConfig';
+
+const AllEventsPage = () => {
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    let mounted = true;
+    const fetchEvents = async () => {
+      try{
+        const res = await axiosInstance.get('/events?sort=recent');
+        if(mounted){
+          setEvents(res.data);
+        }
+      }
+      catch(error){
+        console.error('Error fetching events:', error);
+      }
+      finally{
+        if(mounted){
+          setLoading(false);
+        }
+      }
+    };
+    fetchEvents();
+    return () => {
+      mounted = false;
+    }
+  },[])
+  if (loading) return <p>Loading...</p>;
+  return (
+    <div className="container mt-5">
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h4 className="fw-bold">EVENTS</h4>
+      </div>
+
+      <div className="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
+        {events.map((event) => (
+          <div key={event._id} className="col">
+            <EventCard 
+              id={event._id}
+              image={event.posterUrl}
+              title={event.title}
+              description={event.description}
+              dateTime={new Date(event.dateTime).toLocaleString()}
+              location={event.location}
+              price={event.price}
+              hostedBy={event.hostedBy.name}
+            />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default AllEventsPage;
